@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打刻 | みずかぜ</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --yellow:  #FFD93D;
+  --orange:  #FF6B6B;
+  --green:   #6BCB77;
+  --blue:    #4D96FF;
+  --purple:  #C77DFF;
+  --bg:      #FFF8F0;
+  --card:    #ffffff;
+  --ink:     #2D2D2D;
+  --mid:     #777;
+  --line:    #F0EDE8;
+}
+
+html, body {
+  min-height: 100%;
+  background: var(--bg);
+  font-family: 'Nunito', 'Noto Sans JP', sans-serif;
+  color: var(--ink);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 28px 16px 48px;
+}
+
+/* ── ヘッダー ── */
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.header-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.header-logo .dot {
+  width: 8px; height: 8px;
+  background: var(--yellow);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ── 時計カード ── */
+.clock-card {
+  background: linear-gradient(135deg, #4D96FF 0%, #C77DFF 100%);
+  border-radius: 24px;
+  padding: 22px 28px;
+  width: 100%;
+  max-width: 380px;
+  margin-bottom: 16px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(77,150,255,0.3);
+  position: relative;
+  overflow: hidden;
+}
+.clock-card::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+.clock-card::after {
+  content: '';
+  position: absolute;
+  bottom: -20px; left: -20px;
+  width: 80px; height: 80px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+.clock-time {
+  font-size: 52px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.clock-date {
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  font-weight: 700;
+}
+
+/* ── メインカード ── */
+.card {
+  background: var(--card);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 380px;
+  padding: 28px 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  margin-bottom: 16px;
+}
+
+/* ── セクションラベル ── */
+.section-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 10px;
+}
+
+/* ── 名前選択 ── */
+.name-select-wrap {
+  position: relative;
+  margin-bottom: 24px;
+}
+.name-select {
+  width: 100%;
+  appearance: none;
+  background: #F7F3FF;
+  border: 2px solid #E4D8FF;
+  border-radius: 14px;
+  padding: 14px 44px 14px 18px;
+  font-size: 18px;
+  font-weight: 800;
+  font-family: 'Nunito', 'Noto Sans JP', sans-serif;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.name-select:focus {
+  outline: none;
+  border-color: var(--purple);
+}
+.name-select-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  pointer-events: none;
+}
+
+/* ── ボタン ── */
+.btn-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.btn {
+  border: none;
+  border-radius: 18px;
+  padding: 22px 12px 18px;
+  font-size: 16px;
+  font-weight: 900;
+  font-family: 'Nunito', 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.12s, box-shadow 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background 0.1s;
+}
+.btn:active::after { background: rgba(255,255,255,0.2); }
+.btn:active { transform: scale(0.95); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.btn-icon { font-size: 32px; line-height: 1; }
+.btn-label { letter-spacing: 0.06em; }
+
+.btn-in {
+  background: linear-gradient(145deg, #6BCB77, #4CAF50);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(107,203,119,0.4);
+}
+.btn-out {
+  background: linear-gradient(145deg, #FF6B6B, #e53935);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(255,107,107,0.4);
+}
+
+/* ── 結果表示 ── */
+.result {
+  border-radius: 18px;
+  padding: 20px;
+  display: none;
+  text-align: center;
+  margin-bottom: 16px;
+  width: 100%;
+  max-width: 380px;
+  animation: popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.result.show { display: block; }
+.result.success {
+  background: linear-gradient(135deg, #f0fff4, #dcfce7);
+  border: 2px solid #86efac;
+}
+.result.error {
+  background: linear-gradient(135deg, #fff0f0, #fee2e2);
+  border: 2px solid #fca5a5;
+}
+.result-emoji { font-size: 36px; margin-bottom: 6px; display: block; }
+.result-time  { font-size: 28px; font-weight: 900; display: block; margin-bottom: 4px; color: var(--ink); }
+.result-msg   { font-size: 13px; color: var(--mid); font-weight: 700; }
+
+/* ── 本日の打刻履歴 ── */
+.history-card {
+  background: var(--card);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 380px;
+  padding: 22px 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+}
+.history-list { list-style: none; }
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.history-item:last-child { border-bottom: none; }
+
+.history-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+  flex: 1;
+}
+.history-badge {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin: 0 8px;
+}
+.badge-in  { background: #dcfce7; color: #16a34a; }
+.badge-out { background: #fee2e2; color: #dc2626; }
+.history-time {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.empty-msg {
+  text-align: center;
+  color: var(--mid);
+  font-size: 13px;
+  padding: 16px 0;
+}
+
+/* ── ローディング ── */
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 3px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 読み込み中オーバーレイ ── */
+.loading-overlay {
+  text-align: center;
+  padding: 20px;
+  color: var(--mid);
+  font-size: 14px;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <span class="dot"></span>
+    みずかぜ会計事務所
+  </div>
+</div>
+
+<!-- 時計 -->
+<div class="clock-card">
+  <div class="clock-time" id="clock">--:--:--</div>
+  <div class="clock-date" id="dateDisp"></div>
+</div>
+
+<!-- 結果 -->
+<div class="result" id="result">
+  <span class="result-emoji" id="resultEmoji"></span>
+  <span class="result-time"  id="resultTime"></span>
+  <span class="result-msg"   id="resultMsg"></span>
+</div>
+
+<!-- 打刻カード -->
+<div class="card">
+  <div class="section-label">👤 名前を選んでね</div>
+  <div class="name-select-wrap">
+    <select class="name-select" id="nameSelect">
+      <option value="">読み込み中...</option>
+    </select>
+    <span class="name-select-arrow">▾</span>
+  </div>
+
+  <div class="section-label">⏱ 打刻</div>
+  <div class="btn-group">
+    <button class="btn btn-in"  id="btnIn"  onclick="打刻('出勤')">
+      <span class="btn-icon">☀️</span>
+      <span class="btn-label">出勤</span>
+    </button>
+    <button class="btn btn-out" id="btnOut" onclick="打刻('退勤')">
+      <span class="btn-icon">🌙</span>
+      <span class="btn-label">退勤</span>
+    </button>
+  </div>
+</div>
+
+<!-- 本日の打刻履歴 -->
+<div class="history-card">
+  <div class="section-label">📋 本日の打刻一覧</div>
+  <ul class="history-list" id="historyList">
+    <li class="empty-msg">まだ打刻がありません</li>
+  </ul>
+</div>
+
+<script>
+// ============================================================
+// ★ 設定 — GASデプロイ後にここを変更する ★
+// ============================================================
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwDOAY7hYrPmDNtNoB0AzKKVRQIVgp2rNItKmAzPestaMLgm3_EtgHGBVUOBCV8N6MCGw/exec";
+// ============================================================
+
+// 時計
+function 時計更新() {
+  const now  = new Date();
+  const pad  = n => String(n).padStart(2,"0");
+  const days = ["日","月","火","水","木","金","土"];
+  document.getElementById("clock").textContent =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  document.getElementById("dateDisp").textContent =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${days[now.getDay()]}）`;
+}
+setInterval(時計更新, 1000);
+時計更新();
+
+// ── 社員リストをGASから取得 ──
+async function 社員リスト読み込み() {
+  const sel = document.getElementById("nameSelect");
+  try {
+    const res  = await fetch(`${GAS_URL}?action=getNames`);
+    const data = await res.json();
+    sel.innerHTML = '<option value="">― 名前を選んでください ―</option>';
+    (data.names || []).forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  } catch(e) {
+    // GAS未設定時はサンプル表示
+    sel.innerHTML = `
+      <option value="">― 名前を選んでください ―</option>
+      <option value="林田孝志">林田孝志</option>
+      <option value="サンプル太郎">サンプル太郎</option>
+    `;
+  }
+}
+社員リスト読み込み();
+
+// ── 本日の打刻履歴（ローカル保持） ──
+const 今日キー = () => {
+  const d = new Date();
+  return `kintai_log_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}`;
+};
+let 履歴 = JSON.parse(localStorage.getItem(今日キー()) || "[]");
+履歴表示();
+
+function 履歴追加(名前, 種別, 時刻) {
+  履歴.push({ 名前, 種別, 時刻 });
+  localStorage.setItem(今日キー(), JSON.stringify(履歴));
+  履歴表示();
+}
+
+function 履歴表示() {
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+  if (履歴.length === 0) {
+    list.innerHTML = '<li class="empty-msg">まだ打刻がありません 🌱</li>';
+    return;
+  }
+  // 新しい順
+  [...履歴].reverse().forEach(r => {
+    const li = document.createElement("li");
+    li.className = "history-item";
+    const badge = r.種別 === "出勤" ? "badge-in" : "badge-out";
+    li.innerHTML = `
+      <span class="history-name">${r.名前}</span>
+      <span class="history-badge ${badge}">${r.種別}</span>
+      <span class="history-time">${r.時刻}</span>
+    `;
+    list.appendChild(li);
+  });
+}
+
+// ── 打刻処理 ──
+async function 打刻(種別) {
+  const 社員名 = document.getElementById("nameSelect").value;
+  if (!社員名) {
+    alert("名前を選んでください！");
+    return;
+  }
+
+  const btnIn  = document.getElementById("btnIn");
+  const btnOut = document.getElementById("btnOut");
+  const result = document.getElementById("result");
+  result.className = "result";
+
+  btnIn.disabled = btnOut.disabled = true;
+  const targetBtn = 種別 === "出勤" ? btnIn : btnOut;
+  const origHTML  = targetBtn.innerHTML;
+  targetBtn.innerHTML = `<span class="spinner"></span>`;
+
+  // IP取得
+  let ip = "";
+  try {
+    const r = await fetch("https://api.ipify.org?format=json");
+    ip = (await r.json()).ip;
+  } catch(e) {}
+
+  // GPS取得
+  let lat = "", lng = "";
+  try {
+    const pos = await new Promise((res,rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 4000 })
+    );
+    lat = pos.coords.latitude.toFixed(6);
+    lng = pos.coords.longitude.toFixed(6);
+  } catch(e) {}
+
+  // GASにリクエスト
+  try {
+    const url  = `${GAS_URL}?action=stamp&name=${encodeURIComponent(社員名)}&type=${encodeURIComponent(種別)}&ip=${ip}&lat=${lat}&lng=${lng}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.success) {
+      const 時刻 = data.time;
+      履歴追加(社員名, 種別, 時刻);
+      result.className = "result show success";
+      document.getElementById("resultEmoji").textContent = 種別 === "出勤" ? "☀️" : "🌙";
+      document.getElementById("resultTime").textContent  = 時刻;
+      document.getElementById("resultMsg").textContent   = `${社員名}さんの${種別}を記録しました！`;
+    } else {
+      result.className = "result show error";
+      document.getElementById("resultEmoji").textContent = "⚠️";
+      document.getElementById("resultTime").textContent  = "打刻できません";
+      document.getElementById("resultMsg").textContent   = data.error || "エラーが発生しました";
+    }
+  } catch(e) {
+    result.className = "result show error";
+    document.getElementById("resultEmoji").textContent = "📡";
+    document.getElementById("resultTime").textContent  = "通信エラー";
+    document.getElementById("resultMsg").textContent   = "ネットワークを確認してください";
+  }
+
+  setTimeout(() => {
+    btnIn.disabled = btnOut.disabled = false;
+    btnIn.innerHTML  = `<span class="btn-icon">☀️</span><span class="btn-label">出勤</span>`;
+    btnOut.innerHTML = `<span class="btn-icon">🌙</span><span class="btn-label">退勤</span>`;
+  }, 2000);
+}
+</script>
+</body>
+</html>

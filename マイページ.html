@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マイページ | みずかぜ</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --yellow:  #FFD93D;
+  --orange:  #FF6B6B;
+  --green:   #6BCB77;
+  --blue:    #4D96FF;
+  --purple:  #C77DFF;
+  --bg:      #FFF8F0;
+  --card:    #ffffff;
+  --ink:     #2D2D2D;
+  --mid:     #777;
+  --line:    #F0EDE8;
+}
+
+html, body {
+  min-height: 100%;
+  background: var(--bg);
+  font-family: 'Nunito', 'Noto Sans JP', sans-serif;
+  color: var(--ink);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 16px 48px;
+}
+
+/* ── ヘッダー ── */
+.header-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+.header-logo .dot {
+  width: 8px; height: 8px;
+  background: var(--yellow);
+  border-radius: 50%;
+}
+
+/* ── 名前選択カード ── */
+.card {
+  background: var(--card);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 400px;
+  padding: 24px 22px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  margin-bottom: 14px;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 10px;
+}
+
+.name-select-wrap { position: relative; margin-bottom: 16px; }
+.name-select {
+  width: 100%;
+  appearance: none;
+  background: #F7F3FF;
+  border: 2px solid #E4D8FF;
+  border-radius: 14px;
+  padding: 13px 44px 13px 18px;
+  font-size: 17px;
+  font-weight: 800;
+  font-family: 'Nunito', 'Noto Sans JP', sans-serif;
+  color: var(--ink);
+  cursor: pointer;
+}
+.name-select:focus { outline: none; border-color: var(--purple); }
+.name-select-arrow {
+  position: absolute;
+  right: 16px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.btn-search {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 900;
+  font-family: 'Nunito', 'Noto Sans JP', sans-serif;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.12s;
+  box-shadow: 0 6px 16px rgba(77,150,255,0.3);
+}
+.btn-search:active { transform: scale(0.97); opacity: 0.85; }
+
+/* ── 月サマリー ── */
+.summary-card {
+  background: linear-gradient(135deg, #4D96FF 0%, #C77DFF 100%);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 400px;
+  padding: 22px 24px;
+  box-shadow: 0 8px 24px rgba(77,150,255,0.28);
+  margin-bottom: 14px;
+  display: none;
+}
+.summary-card.show { display: block; }
+.summary-name {
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.summary-month {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.summary-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-box {
+  background: rgba(255,255,255,0.18);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+.stat-num {
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.75);
+  font-weight: 700;
+}
+
+/* ── 日毎テーブル ── */
+.log-card {
+  background: var(--card);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 400px;
+  padding: 22px 22px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  display: none;
+}
+.log-card.show { display: block; }
+
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.log-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--mid);
+  padding: 0 6px 10px;
+  border-bottom: 2px solid var(--line);
+}
+.log-table th:last-child { text-align: center; }
+.log-table td {
+  padding: 10px 6px;
+  border-bottom: 1px dashed var(--line);
+  vertical-align: middle;
+}
+.log-table tr:last-child td { border-bottom: none; }
+
+.td-date { font-weight: 800; color: var(--ink); white-space: nowrap; }
+.td-day  { font-size: 11px; color: var(--mid); margin-left: 4px; }
+.td-time { font-variant-numeric: tabular-nums; font-weight: 700; }
+.td-time.in  { color: #16a34a; }
+.td-time.out { color: #dc2626; }
+.td-empty { color: #ccc; }
+
+.badge-ok      { background: #dcfce7; color: #16a34a; font-size: 11px; font-weight: 900; padding: 3px 9px; border-radius: 999px; }
+.badge-missing { background: #fee2e2; color: #dc2626; font-size: 11px; font-weight: 900; padding: 3px 9px; border-radius: 999px; }
+.badge-holiday { background: #f3f4f6; color: #9ca3af; font-size: 11px; font-weight: 900; padding: 3px 9px; border-radius: 999px; }
+td.td-status { text-align: center; }
+
+/* ── ローディング ── */
+.loading {
+  text-align: center;
+  padding: 24px;
+  color: var(--mid);
+  font-size: 14px;
+  font-weight: 700;
+  display: none;
+}
+.loading.show { display: block; }
+.spinner {
+  display: inline-block;
+  width: 22px; height: 22px;
+  border: 3px solid #e4d8ff;
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-bottom: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-msg {
+  text-align: center;
+  color: var(--mid);
+  font-size: 13px;
+  padding: 20px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="header-logo">
+  <span class="dot"></span>
+  みずかぜ会計事務所 — マイページ
+</div>
+
+<!-- 名前選択 -->
+<div class="card">
+  <div class="section-label">👤 名前を選んでね</div>
+  <div class="name-select-wrap">
+    <select class="name-select" id="nameSelect">
+      <option value="">読み込み中...</option>
+    </select>
+    <span class="name-select-arrow">▾</span>
+  </div>
+  <button class="btn-search" onclick="ログ取得()">📋 今月の打刻を見る</button>
+</div>
+
+<!-- ローディング -->
+<div class="loading" id="loading">
+  <div class="spinner"></div><br>読み込み中...
+</div>
+
+<!-- 月サマリー -->
+<div class="summary-card" id="summaryCard">
+  <div class="summary-name" id="summaryName"></div>
+  <div class="summary-month" id="summaryMonth"></div>
+  <div class="summary-stats">
+    <div class="stat-box">
+      <div class="stat-num" id="statDays">0</div>
+      <div class="stat-label">出勤日数</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="statMissing">0</div>
+      <div class="stat-label">打刻漏れ</div>
+    </div>
+  </div>
+</div>
+
+<!-- 日毎ログ -->
+<div class="log-card" id="logCard">
+  <div class="section-label">📅 日別打刻一覧</div>
+  <table class="log-table">
+    <thead>
+      <tr>
+        <th>日付</th>
+        <th>出勤</th>
+        <th>退勤</th>
+        <th>状態</th>
+      </tr>
+    </thead>
+    <tbody id="logBody"></tbody>
+  </table>
+</div>
+
+<script>
+// ============================================================
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwDOAY7hYrPmDNtNoB0AzKKVRQIVgp2rNItKmAzPestaMLgm3_EtgHGBVUOBCV8N6MCGw/exec";
+// ============================================================
+
+// 社員リスト読み込み
+async function 社員リスト読み込み() {
+  const sel = document.getElementById("nameSelect");
+  try {
+    const res  = await fetch(`${GAS_URL}?action=getNames`);
+    const data = await res.json();
+    sel.innerHTML = '<option value="">― 名前を選んでください ―</option>';
+    (data.names || []).forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name; opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  } catch(e) {
+    sel.innerHTML = `
+      <option value="">― 名前を選んでください ―</option>
+      <option value="林田孝志">林田孝志</option>
+      <option value="サンプル太郎">サンプル太郎</option>
+    `;
+  }
+}
+社員リスト読み込み();
+
+// ログ取得
+async function ログ取得() {
+  const 名前 = document.getElementById("nameSelect").value;
+  if (!名前) { alert("名前を選んでください！"); return; }
+
+  document.getElementById("loading").className    = "loading show";
+  document.getElementById("summaryCard").className = "summary-card";
+  document.getElementById("logCard").className     = "log-card";
+
+  const now   = new Date();
+  const year  = now.getFullYear();
+  const month = now.getMonth() + 1;
+
+  try {
+    const url  = `${GAS_URL}?action=getMyLog&name=${encodeURIComponent(名前)}&year=${year}&month=${month}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    ログ表示(名前, year, month, data.logs || []);
+  } catch(e) {
+    // GAS未設定時はサンプルデータ
+    const サンプル = [
+      { date: "2026/06/02", in: "09:01", out: "18:03" },
+      { date: "2026/06/03", in: "08:58", out: "18:15" },
+      { date: "2026/06/04", in: "09:05", out: ""      },
+      { date: "2026/06/05", in: "",      out: "18:00" },
+      { date: "2026/06/06", in: "09:00", out: "17:55" },
+    ];
+    ログ表示(名前, year, month, サンプル);
+  }
+
+  document.getElementById("loading").className = "loading";
+}
+
+function ログ表示(名前, year, month, logs) {
+  const days  = ["日","月","火","水","木","金","土"];
+  const pad   = n => String(n).padStart(2,"0");
+  const today = new Date();
+
+  // 今月の全営業日（土日除く）を生成
+  const 日数 = new Date(year, month, 0).getDate();
+  const rows = [];
+
+  for (let d = 1; d <= 日数; d++) {
+    const dt  = new Date(year, month - 1, d);
+    if (dt > today) break; // 未来は表示しない
+    const dow = dt.getDay();
+    const dateStr = `${year}/${pad(month)}/${pad(d)}`;
+    const log = logs.find(l => l.date === dateStr) || {};
+    rows.push({ dateStr, dow, in: log.in || "", out: log.out || "" });
+  }
+
+  // サマリー計算
+  let 出勤日数 = 0, 漏れ = 0;
+  rows.forEach(r => {
+    if (r.dow === 0 || r.dow === 6) return;
+    if (r.in || r.out) 出勤日数++;
+    if ((r.in && !r.out) || (!r.in && r.out)) 漏れ++;
+  });
+
+  document.getElementById("summaryName").textContent  = `${名前} さん`;
+  document.getElementById("summaryMonth").textContent = `${year}年${month}月の打刻`;
+  document.getElementById("statDays").textContent     = 出勤日数;
+  document.getElementById("statMissing").textContent  = 漏れ;
+  document.getElementById("summaryCard").className    = "summary-card show";
+
+  // テーブル描画
+  const tbody = document.getElementById("logBody");
+  tbody.innerHTML = "";
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">データがありません</td></tr>';
+  } else {
+    rows.forEach(r => {
+      const isWeekend = r.dow === 0 || r.dow === 6;
+      const dayLabel  = days[r.dow];
+      const hasIn     = !!r.in;
+      const hasOut    = !!r.out;
+
+      let badge = "";
+      if (isWeekend) {
+        badge = `<span class="badge-holiday">${r.dow === 0 ? "日" : "土"}</span>`;
+      } else if (hasIn && hasOut) {
+        badge = `<span class="badge-ok">✓</span>`;
+      } else if (!hasIn && !hasOut) {
+        badge = `<span class="badge-holiday">休</span>`;
+      } else {
+        badge = `<span class="badge-missing">漏れ</span>`;
+      }
+
+      const inCell  = hasIn
+        ? `<span class="td-time in">${r.in}</span>`
+        : `<span class="td-empty">―</span>`;
+      const outCell = hasOut
+        ? `<span class="td-time out">${r.out}</span>`
+        : `<span class="td-empty">―</span>`;
+
+      const tr = document.createElement("tr");
+      if (isWeekend) tr.style.opacity = "0.45";
+      tr.innerHTML = `
+        <td class="td-date">${r.dateStr.slice(5)}<span class="td-day">（${dayLabel}）</span></td>
+        <td>${inCell}</td>
+        <td>${outCell}</td>
+        <td class="td-status">${badge}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.getElementById("logCard").className = "log-card show";
+}
+</script>
+</body>
+</html>
