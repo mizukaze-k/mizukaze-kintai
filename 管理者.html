@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理者画面 | みずかぜ</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#FFF8F0; --card:#fff; --ink:#2D2D2D; --mid:#777; --line:#F0EDE8;
+  --blue:#4D96FF; --purple:#C77DFF; --green:#6BCB77; --orange:#FF6B6B; --yellow:#FFD93D;
+}
+html,body { min-height:100%; background:var(--bg); font-family:'Nunito','Noto Sans JP',sans-serif; color:var(--ink); }
+body { display:flex; flex-direction:column; align-items:center; padding:24px 12px 48px; }
+
+.header-logo {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--ink); color:#fff; font-size:13px; font-weight:800;
+  letter-spacing:0.08em; padding:6px 16px; border-radius:999px; margin-bottom:20px;
+}
+.header-logo .dot { width:8px; height:8px; background:var(--yellow); border-radius:50%; }
+
+/* コントロールバー */
+.ctrl-bar {
+  background:var(--card); border-radius:20px; width:100%; max-width:900px;
+  padding:18px 20px; box-shadow:0 4px 20px rgba(0,0,0,0.07); margin-bottom:14px;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+}
+.month-nav { display:flex; align-items:center; gap:8px; }
+.btn-nav {
+  border:none; background:#f3f4f6; border-radius:10px; width:36px; height:36px;
+  font-size:16px; cursor:pointer; font-weight:900; transition:background 0.15s;
+}
+.btn-nav:hover { background:#e5e7eb; }
+.month-label { font-size:18px; font-weight:900; min-width:100px; text-align:center; }
+
+.tab-group { display:flex; gap:6px; margin-left:auto; }
+.tab-btn {
+  border:none; border-radius:10px; padding:8px 16px; font-size:13px; font-weight:800;
+  font-family:'Nunito','Noto Sans JP',sans-serif; cursor:pointer; transition:all 0.15s;
+  background:#f3f4f6; color:var(--mid);
+}
+.tab-btn.active { background:var(--ink); color:#fff; }
+
+.btn-reload {
+  border:none; background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff; border-radius:10px; padding:8px 16px; font-size:13px; font-weight:800;
+  font-family:'Nunito','Noto Sans JP',sans-serif; cursor:pointer;
+  box-shadow:0 4px 12px rgba(77,150,255,0.3);
+}
+
+/* サマリーカード */
+.summary-row {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+  width:100%; max-width:900px; margin-bottom:14px;
+}
+.summary-box {
+  background:var(--card); border-radius:18px; padding:16px 14px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.06); text-align:center;
+}
+.summary-box .num   { font-size:28px; font-weight:900; line-height:1; margin-bottom:4px; }
+.summary-box .label { font-size:11px; color:var(--mid); font-weight:700; }
+.num.blue   { color:var(--blue); }
+.num.green  { color:#16a34a; }
+.num.orange { color:#dc2626; }
+.num.purple { color:#7c3aed; }
+
+/* テーブル共通 */
+.table-card {
+  background:var(--card); border-radius:20px; width:100%; max-width:900px;
+  padding:20px; box-shadow:0 4px 20px rgba(0,0,0,0.07); margin-bottom:14px;
+  display:none; overflow-x:auto;
+}
+.table-card.show { display:block; }
+.section-label { font-size:11px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--mid); margin-bottom:12px; }
+
+/* 全員一覧テーブル */
+.all-table { width:100%; border-collapse:collapse; font-size:12px; min-width:600px; }
+.all-table th {
+  text-align:center; font-size:10px; font-weight:800; letter-spacing:0.08em;
+  color:var(--mid); padding:4px 3px 8px; border-bottom:2px solid var(--line);
+  white-space:nowrap;
+}
+.all-table th.name-col { text-align:left; min-width:80px; }
+.all-table td { padding:7px 3px; border-bottom:1px dashed var(--line); text-align:center; font-variant-numeric:tabular-nums; }
+.all-table tr:last-child td { border-bottom:none; }
+.all-table td.name-col { text-align:left; font-weight:800; font-size:13px; }
+.cell-in   { color:#16a34a; font-weight:700; font-size:11px; }
+.cell-out  { color:#dc2626; font-weight:700; font-size:11px; }
+.cell-work { color:#7c3aed; font-weight:800; font-size:12px; }
+.cell-miss { background:#fee2e2; color:#dc2626; font-size:10px; font-weight:900; border-radius:6px; padding:2px 4px; }
+.cell-ok   { color:#16a34a; font-size:12px; }
+.cell-rest { color:#ccc; font-size:11px; }
+.cell-holiday { color:#d1d5db; font-size:11px; }
+
+/* 個人詳細テーブル */
+.person-select-wrap { display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+.person-select {
+  appearance:none; background:#F7F3FF; border:2px solid #E4D8FF; border-radius:12px;
+  padding:10px 36px 10px 14px; font-size:15px; font-weight:800;
+  font-family:'Nunito','Noto Sans JP',sans-serif; color:var(--ink); cursor:pointer;
+}
+.person-select:focus { outline:none; border-color:var(--purple); }
+
+.detail-table { width:100%; border-collapse:collapse; font-size:13px; }
+.detail-table th { text-align:left; font-size:11px; font-weight:800; letter-spacing:0.1em; color:var(--mid); padding:0 6px 10px; border-bottom:2px solid var(--line); }
+.detail-table th.right { text-align:right; }
+.detail-table td { padding:10px 6px; border-bottom:1px dashed var(--line); }
+.detail-table tr:last-child td { border-bottom:none; }
+.td-date { font-weight:800; white-space:nowrap; }
+.td-day  { font-size:11px; color:var(--mid); }
+.time-in  { color:#16a34a; font-weight:700; font-variant-numeric:tabular-nums; }
+.time-out { color:#dc2626; font-weight:700; font-variant-numeric:tabular-nums; }
+.time-work { color:#7c3aed; font-weight:800; font-variant-numeric:tabular-nums; text-align:right; }
+.time-empty { color:#ccc; }
+.badge-ok      { background:#dcfce7; color:#16a34a; font-size:11px; font-weight:900; padding:3px 8px; border-radius:999px; }
+.badge-missing { background:#fee2e2; color:#dc2626; font-size:11px; font-weight:900; padding:3px 8px; border-radius:999px; }
+.badge-holiday { background:#f3f4f6; color:#9ca3af; font-size:11px; font-weight:900; padding:3px 8px; border-radius:999px; }
+td.td-status { text-align:center; }
+
+/* ローディング */
+.loading { text-align:center; padding:32px; color:var(--mid); font-size:14px; font-weight:700; display:none; width:100%; max-width:900px; }
+.loading.show { display:block; }
+.spinner { display:inline-block; width:24px; height:24px; border:3px solid #e4d8ff; border-top-color:var(--purple); border-radius:50%; animation:spin 0.7s linear infinite; margin-bottom:8px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+@media(max-width:480px) {
+  .summary-row { grid-template-columns:1fr 1fr; }
+  .tab-group { margin-left:0; }
+}
+</style>
+</head>
+<body>
+
+<div class="header-logo"><span class="dot"></span>みずかぜ会計事務所 — 管理者画面</div>
+
+<!-- コントロールバー -->
+<div class="ctrl-bar">
+  <div class="month-nav">
+    <button class="btn-nav" onclick="月変更(-1)">‹</button>
+    <div class="month-label" id="monthLabel"></div>
+    <button class="btn-nav" onclick="月変更(1)">›</button>
+  </div>
+  <div class="tab-group">
+    <button class="tab-btn active" id="tab全員" onclick="タブ切替('全員')">👥 全員一覧</button>
+    <button class="tab-btn"        id="tab個人" onclick="タブ切替('個人')">👤 個人詳細</button>
+  </div>
+  <button class="btn-reload" onclick="データ取得()">🔄 更新</button>
+</div>
+
+<!-- サマリー -->
+<div class="summary-row" id="summaryRow">
+  <div class="summary-box"><div class="num blue"   id="s出勤">—</div><div class="label">本日出勤</div></div>
+  <div class="summary-box"><div class="num green"  id="s実働">—</div><div class="label">平均実働(h)</div></div>
+  <div class="summary-box"><div class="num orange" id="s漏れ">—</div><div class="label">打刻漏れ</div></div>
+  <div class="summary-box"><div class="num purple" id="s出勤日">—</div><div class="label">平均出勤日数</div></div>
+</div>
+
+<!-- ローディング -->
+<div class="loading" id="loading"><div class="spinner"></div><br>データ取得中...</div>
+
+<!-- 全員一覧 -->
+<div class="table-card show" id="card全員">
+  <div class="section-label">👥 全員の出退勤一覧</div>
+  <div id="allTableWrap"></div>
+</div>
+
+<!-- 個人詳細 -->
+<div class="table-card" id="card個人">
+  <div class="section-label">👤 個人詳細</div>
+  <div class="person-select-wrap">
+    <select class="person-select" id="personSelect" onchange="個人表示()">
+      <option value="">社員を選んでください</option>
+    </select>
+  </div>
+  <div id="detailWrap"></div>
+</div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwDOAY7hYrPmDNtNoB0AzKKVRQIVgp2rNItKmAzPestaMLgm3_EtgHGBVUOBCV8N6MCGw/exec";
+
+const now = new Date();
+let 表示年  = now.getFullYear();
+let 表示月  = now.getMonth() + 1;
+let 現在タブ = "全員";
+let 全データ = {}; // { name: [ {date, in, out} ] }
+let 社員リスト = [];
+
+// 月ラベル更新
+function 月ラベル更新() {
+  document.getElementById("monthLabel").textContent = `${表示年}年${表示月}月`;
+}
+月ラベル更新();
+
+function 月変更(delta) {
+  表示月 += delta;
+  if (表示月 > 12) { 表示月 = 1;  表示年++; }
+  if (表示月 < 1)  { 表示月 = 12; 表示年--; }
+  月ラベル更新();
+  データ取得();
+}
+
+function タブ切替(tab) {
+  現在タブ = tab;
+  document.getElementById("tab全員").className = "tab-btn" + (tab==="全員"?" active":"");
+  document.getElementById("tab個人").className = "tab-btn" + (tab==="個人"?" active":"");
+  document.getElementById("card全員").className = "table-card" + (tab==="全員"?" show":"");
+  document.getElementById("card個人").className = "table-card" + (tab==="個人"?" show":"");
+}
+
+// データ取得
+async function データ取得() {
+  document.getElementById("loading").className = "loading show";
+
+  try {
+    // 社員リスト取得
+    const namesRes  = await fetch(`${GAS_URL}?action=getNames`);
+    const namesData = await namesRes.json();
+    社員リスト = namesData.names || [];
+
+    // 全員分のログを取得
+    全データ = {};
+    await Promise.all(社員リスト.map(async name => {
+      try {
+        const res  = await fetch(`${GAS_URL}?action=getMyLog&name=${encodeURIComponent(name)}&year=${表示年}&month=${表示月}`);
+        const data = await res.json();
+        全データ[name] = data.logs || [];
+      } catch(e) { 全データ[name] = []; }
+    }));
+
+    // 個人セレクト更新
+    const sel = document.getElementById("personSelect");
+    sel.innerHTML = '<option value="">社員を選んでください</option>';
+    社員リスト.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name; opt.textContent = name;
+      sel.appendChild(opt);
+    });
+
+    サマリー更新();
+    全員テーブル描画();
+    if (document.getElementById("personSelect").value) 個人表示();
+
+  } catch(e) {
+    console.error(e);
+  }
+
+  document.getElementById("loading").className = "loading";
+}
+
+// 実働時間計算（分）
+function 実働分計算(inTime, outTime) {
+  if (!inTime || !outTime) return null;
+  const [ih, im] = inTime.split(":").map(Number);
+  const [oh, om] = outTime.split(":").map(Number);
+  const diff = (oh * 60 + om) - (ih * 60 + im);
+  return diff > 0 ? diff : null;
+}
+
+function 分表示(mins) {
+  if (mins === null) return "―";
+  return `${Math.floor(mins/60)}:${String(mins%60).padStart(2,"0")}`;
+}
+
+// サマリー更新
+function サマリー更新() {
+  const todayStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,"0")}/${String(now.getDate()).padStart(2,"0")}`;
+  let 本日出勤 = 0, 漏れ合計 = 0, 実働合計 = 0, 実働件数 = 0, 出勤日合計 = 0;
+
+  社員リスト.forEach(name => {
+    const logs = 全データ[name] || [];
+    logs.forEach(l => {
+      if (l.date === todayStr && l.in) 本日出勤++;
+      const mins = 実働分計算(l.in, l.out);
+      if (mins) { 実働合計 += mins; 実働件数++; }
+      if ((l.in && !l.out) || (!l.in && l.out)) 漏れ合計++;
+      if (l.in || l.out) 出勤日合計++;
+    });
+  });
+
+  document.getElementById("s出勤").textContent  = 本日出勤 + "人";
+  document.getElementById("s実働").textContent  = 実働件数 ? (実働合計/実働件数/60).toFixed(1) : "―";
+  document.getElementById("s漏れ").textContent  = 漏れ合計 + "件";
+  document.getElementById("s出勤日").textContent = 社員リスト.length ? (出勤日合計/社員リスト.length).toFixed(1) + "日" : "―";
+}
+
+// 全員一覧テーブル
+function 全員テーブル描画() {
+  const pad  = n => String(n).padStart(2,"0");
+  const days = ["日","月","火","水","木","金","土"];
+  const 日数 = new Date(表示年, 表示月, 0).getDate();
+
+  // 日付ヘッダー（平日のみ）
+  const 日付リスト = [];
+  for (let d = 1; d <= 日数; d++) {
+    const dt  = new Date(表示年, 表示月-1, d);
+    const dow = dt.getDay();
+    日付リスト.push({ d, dow, dateStr: `${表示年}/${pad(表示月)}/${pad(d)}` });
+  }
+
+  let html = `<table class="all-table"><thead><tr><th class="name-col">氏名</th>`;
+  日付リスト.forEach(({ d, dow }) => {
+    const isWE = dow===0||dow===6;
+    const color = dow===0?"color:#ef4444":dow===6?"color:#3b82f6":"";
+    html += `<th style="${color}${isWE?";opacity:0.5":""}">${d}<br><span style="font-size:9px">${days[dow]}</span></th>`;
+  });
+  html += `<th>出勤日</th><th>漏れ</th><th style="color:#7c3aed">実働計</th></tr></thead><tbody>`;
+
+  社員リスト.forEach(name => {
+    const logs = 全データ[name] || [];
+    const map  = {};
+    logs.forEach(l => { map[l.date] = l; });
+
+    let 出勤日数 = 0, 漏れ = 0, 実働合計 = 0;
+    html += `<tr><td class="name-col">${name}</td>`;
+
+    日付リスト.forEach(({ dateStr, dow }) => {
+      const isWE = dow===0||dow===6;
+      const log  = map[dateStr];
+      if (isWE) {
+        html += `<td class="cell-holiday">―</td>`;
+        return;
+      }
+      if (!log || (!log.in && !log.out)) {
+        html += `<td class="cell-rest">―</td>`;
+        return;
+      }
+      出勤日数++;
+      const mins = 実働分計算(log.in, log.out);
+      if (mins) 実働合計 += mins;
+      if ((log.in && !log.out) || (!log.in && log.out)) {
+        漏れ++;
+        html += `<td><span class="cell-miss">!</span></td>`;
+      } else {
+        html += `<td class="cell-ok">✓</td>`;
+      }
+    });
+
+    html += `<td style="font-weight:800">${出勤日数}日</td>`;
+    html += `<td>${漏れ > 0 ? `<span class="cell-miss">${漏れ}</span>` : "―"}</td>`;
+    html += `<td class="cell-work">${分表示(実働合計 || null)}</td>`;
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("allTableWrap").innerHTML = html;
+}
+
+// 個人詳細表示
+function 個人表示() {
+  const name = document.getElementById("personSelect").value;
+  if (!name) { document.getElementById("detailWrap").innerHTML = ""; return; }
+
+  const logs = 全データ[name] || [];
+  const map  = {};
+  logs.forEach(l => { map[l.date] = l; });
+
+  const pad  = n => String(n).padStart(2,"0");
+  const days = ["日","月","火","水","木","金","土"];
+  const 日数 = new Date(表示年, 表示月, 0).getDate();
+  const today = new Date();
+
+  let 出勤日数 = 0, 漏れ = 0, 実働合計 = 0;
+  let rows = [];
+
+  for (let d = 1; d <= 日数; d++) {
+    const dt      = new Date(表示年, 表示月-1, d);
+    if (dt > today) break;
+    const dow     = dt.getDay();
+    const dateStr = `${表示年}/${pad(表示月)}/${pad(d)}`;
+    const log     = map[dateStr] || {};
+    const isWE    = dow===0||dow===6;
+    const hasIn   = !!log.in, hasOut = !!log.out;
+    const mins    = 実働分計算(log.in, log.out);
+
+    if (!isWE) {
+      if (hasIn || hasOut) 出勤日数++;
+      if ((hasIn && !hasOut) || (!hasIn && hasOut)) 漏れ++;
+      if (mins) 実働合計 += mins;
+    }
+    rows.push({ dateStr, d, dow, isWE, hasIn, hasOut, in: log.in||"", out: log.out||"", mins });
+  }
+
+  let html = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div style="background:#f0fdf4;border-radius:14px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:900;color:#16a34a">${出勤日数}日</div>
+        <div style="font-size:11px;color:var(--mid);font-weight:700">出勤日数</div>
+      </div>
+      <div style="background:#fef2f2;border-radius:14px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:900;color:#dc2626">${漏れ}件</div>
+        <div style="font-size:11px;color:var(--mid);font-weight:700">打刻漏れ</div>
+      </div>
+      <div style="background:#f5f3ff;border-radius:14px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:900;color:#7c3aed">${分表示(実働合計||null)}</div>
+        <div style="font-size:11px;color:var(--mid);font-weight:700">実働合計</div>
+      </div>
+    </div>
+    <table class="detail-table">
+      <thead><tr>
+        <th>日付</th><th>出勤</th><th>退勤</th><th>状態</th><th class="right">実働</th>
+      </tr></thead><tbody>`;
+
+  rows.forEach(r => {
+    const badge = r.isWE
+      ? `<span class="badge-holiday">${r.dow===0?"日":"土"}</span>`
+      : (r.hasIn && r.hasOut)
+        ? `<span class="badge-ok">✓</span>`
+        : (!r.hasIn && !r.hasOut)
+          ? `<span class="badge-holiday">休</span>`
+          : `<span class="badge-missing">漏れ</span>`;
+
+    const inCell   = r.hasIn  ? `<span class="time-in">${r.in}</span>`   : `<span class="time-empty">―</span>`;
+    const outCell  = r.hasOut ? `<span class="time-out">${r.out}</span>` : `<span class="time-empty">―</span>`;
+    const workCell = `<span class="time-work">${分表示(r.mins)}</span>`;
+
+    html += `<tr style="${r.isWE?"opacity:0.4":""}">
+      <td class="td-date">${r.dateStr.slice(5)}<span class="td-day">（${days[r.dow]}）</span></td>
+      <td>${inCell}</td><td>${outCell}</td>
+      <td class="td-status">${badge}</td><td>${workCell}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("detailWrap").innerHTML = html;
+}
+
+// 初期ロード
+データ取得();
+</script>
+</body>
+</html>
