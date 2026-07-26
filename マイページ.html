@@ -9,7 +9,7 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 :root {
   --bg:#FFF8F0; --card:#fff; --ink:#2D2D2D; --mid:#777; --line:#F0EDE8;
-  --blue:#4D96FF; --purple:#C77DFF; --green:#6BCB77; --orange:#FF6B6B;
+  --blue:#4D96FF; --purple:#C77DFF; --green:#6BCB77; --orange:#FF6B6B; --yellow:#FFD93D;
 }
 html,body { min-height:100%; background:var(--bg); font-family:'Nunito','Noto Sans JP',sans-serif; color:var(--ink); }
 body { display:flex; flex-direction:column; align-items:center; padding:28px 16px 48px; }
@@ -29,7 +29,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
   font-size:11px; font-weight:800; letter-spacing:0.14em;
   text-transform:uppercase; color:var(--mid); margin-bottom:10px;
 }
-.name-select-wrap { position:relative; margin-bottom:16px; }
+.name-select-wrap { position:relative; margin-bottom:14px; }
 .name-select {
   width:100%; appearance:none; background:#F7F3FF; border:2px solid #E4D8FF;
   border-radius:14px; padding:13px 44px 13px 18px; font-size:17px; font-weight:800;
@@ -38,6 +38,20 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 .name-select:focus { outline:none; border-color:var(--purple); }
 .name-select-arrow { position:absolute; right:16px; top:50%; transform:translateY(-50%); font-size:18px; pointer-events:none; }
 
+/* 月選択 */
+.month-nav {
+  display:flex; align-items:center; justify-content:space-between;
+  background:#F7F3FF; border:2px solid #E4D8FF; border-radius:14px;
+  padding:10px 16px; margin-bottom:14px;
+}
+.btn-month {
+  border:none; background:none; font-size:20px; cursor:pointer;
+  color:var(--purple); font-weight:900; padding:0 8px;
+  transition:opacity 0.15s;
+}
+.btn-month:hover { opacity:0.7; }
+.month-display { font-size:16px; font-weight:900; color:var(--ink); }
+
 .btn {
   width:100%; border:none; border-radius:14px; padding:14px; font-size:15px;
   font-weight:900; font-family:'Nunito','Noto Sans JP',sans-serif;
@@ -45,11 +59,9 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 }
 .btn:active { transform:scale(0.97); opacity:0.85; }
 .btn-primary { background:linear-gradient(135deg,var(--blue),var(--purple)); box-shadow:0 6px 16px rgba(77,150,255,0.3); }
-.btn-orange  { background:linear-gradient(135deg,#FF9A3C,var(--orange)); box-shadow:0 6px 16px rgba(255,107,107,0.3); margin-top:10px; }
 .btn-green   { background:linear-gradient(135deg,var(--green),#4CAF50); box-shadow:0 6px 16px rgba(107,203,119,0.3); }
 .btn-gray    { background:#e5e7eb; color:#6b7280; box-shadow:none; margin-top:8px; }
 
-/* サマリー */
 .summary-card {
   background:linear-gradient(135deg,#4D96FF,#C77DFF); border-radius:24px;
   width:100%; max-width:400px; padding:22px 24px;
@@ -63,7 +75,6 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 .stat-num   { font-size:26px; font-weight:900; color:#fff; line-height:1; margin-bottom:4px; }
 .stat-label { font-size:11px; color:rgba(255,255,255,0.75); font-weight:700; }
 
-/* ログテーブル */
 .log-card { background:var(--card); border-radius:24px; width:100%; max-width:400px; padding:22px; box-shadow:0 4px 20px rgba(0,0,0,0.07); display:none; margin-bottom:14px; }
 .log-card.show { display:block; }
 .log-table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -85,23 +96,19 @@ td.td-status { text-align:center; }
 .btn-correct:hover { background:#f3f4f6; }
 .empty-msg { text-align:center; color:var(--mid); font-size:13px; padding:20px 0; }
 
-/* 修正申請モーダル */
 .modal-overlay {
   position:fixed; inset:0; background:rgba(0,0,0,0.45);
-  display:flex; align-items:center; justify-content:center;
-  padding:20px; z-index:100; display:none;
+  display:none; align-items:center; justify-content:center; padding:20px; z-index:100;
 }
 .modal-overlay.show { display:flex; }
 .modal {
-  background:#fff; border-radius:24px; padding:28px 24px;
-  width:100%; max-width:360px;
+  background:#fff; border-radius:24px; padding:28px 24px; width:100%; max-width:360px;
   box-shadow:0 20px 60px rgba(0,0,0,0.2);
   animation:popIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
 }
 @keyframes popIn { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
 .modal-title { font-size:17px; font-weight:900; margin-bottom:4px; }
 .modal-sub   { font-size:12px; color:var(--mid); margin-bottom:20px; }
-
 .form-group { margin-bottom:14px; }
 .form-label { font-size:11px; font-weight:800; letter-spacing:0.1em; color:var(--mid); margin-bottom:6px; display:block; }
 .form-select, .form-input, .form-textarea {
@@ -110,25 +117,15 @@ td.td-status { text-align:center; }
   font-family:'Nunito','Noto Sans JP',sans-serif; color:var(--ink);
   background:#fafafa; transition:border-color 0.2s;
 }
-.form-select:focus, .form-input:focus, .form-textarea:focus {
-  outline:none; border-color:var(--blue); background:#fff;
-}
+.form-select:focus, .form-input:focus, .form-textarea:focus { outline:none; border-color:var(--blue); background:#fff; }
 .form-textarea { resize:vertical; min-height:70px; font-size:14px; }
-.form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
-/* ローディング */
-.loading { text-align:center; padding:24px; color:var(--mid); font-size:14px; font-weight:700; display:none; }
+.loading { text-align:center; padding:24px; color:var(--mid); font-size:14px; font-weight:700; display:none; width:100%; max-width:400px; }
 .loading.show { display:block; }
 .spinner { display:inline-block; width:22px; height:22px; border:3px solid #e4d8ff; border-top-color:var(--purple); border-radius:50%; animation:spin 0.7s linear infinite; margin-bottom:8px; }
 @keyframes spin { to{transform:rotate(360deg)} }
 
-/* トースト */
-.toast {
-  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
-  background:#2D2D2D; color:#fff; padding:12px 24px; border-radius:999px;
-  font-size:14px; font-weight:700; transition:transform 0.3s; z-index:200;
-  white-space:nowrap;
-}
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:#2D2D2D; color:#fff; padding:12px 24px; border-radius:999px; font-size:14px; font-weight:700; transition:transform 0.3s; z-index:200; white-space:nowrap; }
 .toast.show { transform:translateX(-50%) translateY(0); }
 </style>
 </head>
@@ -136,7 +133,6 @@ td.td-status { text-align:center; }
 
 <div class="header-logo"><span class="dot"></span>みずかぜ会計事務所 — マイページ</div>
 
-<!-- 名前選択 -->
 <div class="card">
   <div class="section-label">👤 名前を選んでね</div>
   <div class="name-select-wrap">
@@ -145,13 +141,19 @@ td.td-status { text-align:center; }
     </select>
     <span class="name-select-arrow">▾</span>
   </div>
-  <button class="btn btn-primary" onclick="ログ取得()">📋 今月の打刻を見る</button>
+
+  <div class="section-label">📅 月を選んでね</div>
+  <div class="month-nav">
+    <button class="btn-month" onclick="月変更(-1)">‹</button>
+    <div class="month-display" id="monthDisplay"></div>
+    <button class="btn-month" onclick="月変更(1)">›</button>
+  </div>
+
+  <button class="btn btn-primary" onclick="ログ取得()">📋 打刻を見る</button>
 </div>
 
-<!-- ローディング -->
 <div class="loading" id="loading"><div class="spinner"></div><br>読み込み中...</div>
 
-<!-- サマリー -->
 <div class="summary-card" id="summaryCard">
   <div class="summary-name"  id="summaryName"></div>
   <div class="summary-month" id="summaryMonth"></div>
@@ -161,7 +163,6 @@ td.td-status { text-align:center; }
   </div>
 </div>
 
-<!-- 日別ログ -->
 <div class="log-card" id="logCard">
   <div class="section-label">📅 日別打刻一覧</div>
   <table class="log-table">
@@ -170,12 +171,10 @@ td.td-status { text-align:center; }
   </table>
 </div>
 
-<!-- 修正申請モーダル -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-title">⏱ 打刻修正申請</div>
     <div class="modal-sub" id="modalSub"></div>
-
     <div class="form-group">
       <label class="form-label">修正する種別</label>
       <select class="form-select" id="correctType">
@@ -183,29 +182,45 @@ td.td-status { text-align:center; }
         <option value="退勤">退勤時刻</option>
       </select>
     </div>
-
     <div class="form-group">
       <label class="form-label">正しい時刻</label>
       <input class="form-input" type="time" id="correctTime">
     </div>
-
     <div class="form-group">
       <label class="form-label">修正理由</label>
       <textarea class="form-textarea" id="correctReason" placeholder="例：朝一外出のため、事務所到着後に打刻しました"></textarea>
     </div>
-
     <button class="btn btn-green" onclick="修正申請送信()">📨 申請する</button>
     <button class="btn btn-gray"  onclick="モーダル閉じる()">キャンセル</button>
   </div>
 </div>
 
-<!-- トースト -->
 <div class="toast" id="toast"></div>
 
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbybr3z0P_J9H6JUXc5ETVEkhOIrZLcQTJu3P3441sh5Xrn6yDMX2_VPt_RaRAKPoHs9kw/exec";
 
+const now = new Date();
+let 表示年  = now.getFullYear();
+let 表示月  = now.getMonth() + 1;
 let 選択中の日付 = "";
+
+// 月表示更新
+function 月表示更新() {
+  document.getElementById("monthDisplay").textContent = `${表示年}年${表示月}月`;
+}
+月表示更新();
+
+function 月変更(delta) {
+  表示月 += delta;
+  if (表示月 > 12) { 表示月 = 1;  表示年++; }
+  if (表示月 < 1)  { 表示月 = 12; 表示年--; }
+  月表示更新();
+  // 既に表示中なら自動更新
+  if (document.getElementById("logCard").className.includes("show")) {
+    ログ取得();
+  }
+}
 
 // 社員リスト
 async function 社員リスト読み込み() {
@@ -220,7 +235,7 @@ async function 社員リスト読み込み() {
       sel.appendChild(opt);
     });
   } catch(e) {
-    sel.innerHTML = '<option value="">― 名前を選んでください ―</option><option value="林田孝志">林田孝志</option>';
+    sel.innerHTML = '<option value="">読み込み失敗 — リロードしてください</option>';
   }
 }
 社員リスト読み込み();
@@ -234,29 +249,28 @@ async function ログ取得() {
   document.getElementById("summaryCard").className = "summary-card";
   document.getElementById("logCard").className     = "log-card";
 
-  const now = new Date();
-  const year = now.getFullYear(), month = now.getMonth() + 1;
-
   try {
-    const res  = await fetch(`${GAS_URL}?action=getMyLog&name=${encodeURIComponent(名前)}&year=${year}&month=${month}`);
+    const url  = `${GAS_URL}?action=getMyLog&name=${encodeURIComponent(名前)}&year=${表示年}&month=${表示月}`;
+    const res  = await fetch(url);
     const data = await res.json();
-    ログ表示(名前, year, month, data.logs || []);
+    ログ表示(名前, 表示年, 表示月, data.logs || []);
   } catch(e) {
-    ログ表示(名前, year, month, []);
+    ログ表示(名前, 表示年, 表示月, []);
   }
   document.getElementById("loading").className = "loading";
 }
 
 function ログ表示(名前, year, month, logs) {
-  const days = ["日","月","火","水","木","金","土"];
-  const pad  = n => String(n).padStart(2,"0");
+  const days  = ["日","月","火","水","木","金","土"];
+  const pad   = n => String(n).padStart(2,"0");
   const today = new Date();
   const 日数  = new Date(year, month, 0).getDate();
   const rows  = [];
 
   for (let d = 1; d <= 日数; d++) {
     const dt = new Date(year, month-1, d);
-    if (dt > today) break;
+    // 未来の日付は今月のみスキップ
+    if (year === today.getFullYear() && month === today.getMonth()+1 && dt > today) break;
     const dow     = dt.getDay();
     const dateStr = `${year}/${pad(month)}/${pad(d)}`;
     const log     = logs.find(l => l.date === dateStr) || {};
@@ -279,39 +293,41 @@ function ログ表示(名前, year, month, logs) {
   const tbody = document.getElementById("logBody");
   tbody.innerHTML = "";
 
-  rows.forEach(r => {
-    const isWeekend = r.dow === 0 || r.dow === 6;
-    const hasIn = !!r.in, hasOut = !!r.out;
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">データがありません 🌱</td></tr>';
+  } else {
+    rows.forEach(r => {
+      const isWeekend = r.dow === 0 || r.dow === 6;
+      const hasIn = !!r.in, hasOut = !!r.out;
 
-    let badge = "";
-    if (isWeekend)            badge = `<span class="badge-holiday">${r.dow===0?"日":"土"}</span>`;
-    else if (hasIn && hasOut) badge = `<span class="badge-ok">✓</span>`;
-    else if (!hasIn && !hasOut) badge = `<span class="badge-holiday">休</span>`;
-    else                      badge = `<span class="badge-missing">漏れ</span>`;
+      let badge = "";
+      if (isWeekend)              badge = `<span class="badge-holiday">${r.dow===0?"日":"土"}</span>`;
+      else if (hasIn && hasOut)   badge = `<span class="badge-ok">✓</span>`;
+      else if (!hasIn && !hasOut) badge = `<span class="badge-holiday">休</span>`;
+      else                        badge = `<span class="badge-missing">漏れ</span>`;
 
-    const inClass  = "td-time in"  + (r.inMod  ? " modified" : "");
-    const outClass = "td-time out" + (r.outMod ? " modified" : "");
-    const inCell   = hasIn  ? `<span class="${inClass}">${r.in}</span>`   : `<span class="td-empty">―</span>`;
-    const outCell  = hasOut ? `<span class="${outClass}">${r.out}</span>` : `<span class="td-empty">―</span>`;
+      const inClass  = "td-time in"  + (r.inMod  ? " modified" : "");
+      const outClass = "td-time out" + (r.outMod ? " modified" : "");
+      const inCell   = hasIn  ? `<span class="${inClass}">${r.in}</span>`   : `<span class="td-empty">―</span>`;
+      const outCell  = hasOut ? `<span class="${outClass}">${r.out}</span>` : `<span class="td-empty">―</span>`;
+      const correctBtn = isWeekend ? "" : `<button class="btn-correct" onclick="修正モーダル開く('${r.dateStr}')">修正</button>`;
 
-    const correctBtn = isWeekend ? "" : `<button class="btn-correct" onclick="修正モーダル開く('${r.dateStr}')">修正</button>`;
-
-    const tr = document.createElement("tr");
-    if (isWeekend) tr.style.opacity = "0.4";
-    tr.innerHTML = `
-      <td class="td-date">${r.dateStr.slice(5)}<br><span class="td-day">（${days[r.dow]}）</span></td>
-      <td>${inCell}</td>
-      <td>${outCell}</td>
-      <td class="td-status">${badge}</td>
-      <td>${correctBtn}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+      const tr = document.createElement("tr");
+      if (isWeekend) tr.style.opacity = "0.4";
+      tr.innerHTML = `
+        <td class="td-date">${r.dateStr.slice(5)}<br><span class="td-day">（${days[r.dow]}）</span></td>
+        <td>${inCell}</td><td>${outCell}</td>
+        <td class="td-status">${badge}</td>
+        <td>${correctBtn}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
   document.getElementById("logCard").className = "log-card show";
 }
 
-// 修正申請モーダル
+// 修正申請
 function 修正モーダル開く(dateStr) {
   選択中の日付 = dateStr;
   document.getElementById("modalSub").textContent = `対象日：${dateStr}`;
@@ -324,21 +340,18 @@ function モーダル閉じる() {
 }
 
 async function 修正申請送信() {
-  const 名前    = document.getElementById("nameSelect").value;
-  const 種別    = document.getElementById("correctType").value;
-  const 時刻    = document.getElementById("correctTime").value;
-  const 理由    = document.getElementById("correctReason").value;
+  const 名前 = document.getElementById("nameSelect").value;
+  const 種別 = document.getElementById("correctType").value;
+  const 時刻 = document.getElementById("correctTime").value;
+  const 理由 = document.getElementById("correctReason").value;
 
-  if (!時刻)  { alert("正しい時刻を入力してください"); return; }
-  if (!理由)  { alert("修正理由を入力してください"); return; }
-
-  const newTime = 時刻.slice(0,5); // "HH:mm"
+  if (!時刻) { alert("正しい時刻を入力してください"); return; }
+  if (!理由) { alert("修正理由を入力してください"); return; }
 
   try {
-    const url  = `${GAS_URL}?action=correct&name=${encodeURIComponent(名前)}&date=${encodeURIComponent(選択中の日付)}&type=${encodeURIComponent(種別)}&newTime=${encodeURIComponent(newTime)}&reason=${encodeURIComponent(理由)}`;
+    const url  = `${GAS_URL}?action=correct&name=${encodeURIComponent(名前)}&date=${encodeURIComponent(選択中の日付)}&type=${encodeURIComponent(種別)}&newTime=${encodeURIComponent(時刻.slice(0,5))}&reason=${encodeURIComponent(理由)}`;
     const res  = await fetch(url);
     const data = await res.json();
-
     if (data.success) {
       モーダル閉じる();
       トースト表示("✅ 修正申請を送信しました！承認後に反映されます");
@@ -357,7 +370,6 @@ function トースト表示(msg) {
   setTimeout(() => { t.className = "toast"; }, 3500);
 }
 
-// モーダル外クリックで閉じる
 document.getElementById("modalOverlay").addEventListener("click", function(e) {
   if (e.target === this) モーダル閉じる();
 });
