@@ -54,6 +54,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 .btn:active { transform:scale(0.97); opacity:0.85; }
 .btn-primary { background:linear-gradient(135deg,var(--blue),var(--purple)); box-shadow:0 6px 16px rgba(77,150,255,0.3); }
 .btn-green   { background:linear-gradient(135deg,#6BCB77,#4CAF50); box-shadow:0 6px 16px rgba(107,203,119,0.3); }
+.btn-orange  { background:linear-gradient(135deg,#FF9A3C,#FF6B6B); box-shadow:0 6px 16px rgba(255,107,107,0.3); margin-top:10px; }
 .btn-gray    { background:#e5e7eb; color:#6b7280; box-shadow:none; margin-top:8px; }
 
 .summary-card {
@@ -82,16 +83,15 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 }
 .log-table td { padding:9px 4px; border-bottom:1px dashed var(--line); text-align:center; vertical-align:middle; }
 .log-table tr:last-child td { border-bottom:none; }
-
-.td-date { font-weight:800; white-space:nowrap; text-align:center; }
+.td-date { font-weight:800; white-space:nowrap; }
 .td-day  { font-size:10px; color:var(--mid); }
+
 .time-in-normal { color:var(--green); font-weight:700; font-variant-numeric:tabular-nums; }
 .time-in-late   { color:var(--red);   font-weight:700; font-variant-numeric:tabular-nums; }
 .time-out       { color:var(--green); font-weight:700; font-variant-numeric:tabular-nums; }
 .time-work      { color:#7c3aed; font-weight:800; font-variant-numeric:tabular-nums; }
 .time-empty     { color:#ccc; }
 .time-scheduled { color:#555; font-variant-numeric:tabular-nums; }
-.time-break     { color:#555; }
 
 .btn-correct {
   background:none; border:1.5px solid #d1d5db; border-radius:8px;
@@ -100,6 +100,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 }
 .btn-correct:hover { background:#f3f4f6; }
 
+/* モーダル共通 */
 .modal-overlay {
   position:fixed; inset:0; background:rgba(0,0,0,0.45);
   display:none; align-items:center; justify-content:center; padding:20px; z-index:100;
@@ -118,8 +119,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 .form-select, .form-input, .form-textarea {
   width:100%; border:2px solid #e5e7eb; border-radius:12px;
   padding:11px 14px; font-size:15px; font-weight:700;
-  font-family:'Nunito','Noto Sans JP',sans-serif; color:var(--ink);
-  background:#fafafa;
+  font-family:'Nunito','Noto Sans JP',sans-serif; color:var(--ink); background:#fafafa;
 }
 .form-select:focus, .form-input:focus, .form-textarea:focus { outline:none; border-color:var(--blue); }
 .form-textarea { resize:vertical; min-height:70px; font-size:14px; }
@@ -131,6 +131,12 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:#2D2D2D; color:#fff; padding:12px 24px; border-radius:999px; font-size:14px; font-weight:700; transition:transform 0.3s; z-index:200; white-space:nowrap; }
 .toast.show { transform:translateX(-50%) translateY(0); }
+
+/* 出勤予定バッジ */
+.schedule-badge {
+  font-size:9px; font-weight:900; padding:1px 5px; border-radius:999px;
+  background:#dbeafe; color:#1d4ed8; margin-left:3px;
+}
 </style>
 </head>
 <body>
@@ -152,6 +158,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
     <button class="btn-month" onclick="月変更(1)">›</button>
   </div>
   <button class="btn btn-primary" onclick="ログ取得()">📋 打刻を見る</button>
+  <button class="btn btn-orange"  onclick="出勤予定モーダル開く()">📅 出勤予定を申告する</button>
 </div>
 
 <div class="loading" id="loading"><div class="spinner"></div><br>読み込み中...</div>
@@ -186,14 +193,14 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
   </div>
 </div>
 
-<!-- 修正申請モーダル -->
-<div class="modal-overlay" id="modalOverlay">
+<!-- 打刻修正モーダル -->
+<div class="modal-overlay" id="correctOverlay">
   <div class="modal">
     <div class="modal-title">⏱ 打刻修正申請</div>
-    <div class="modal-sub" id="modalSub"></div>
+    <div class="modal-sub" id="correctSub"></div>
     <div class="form-group">
       <label class="form-label">修正する種別</label>
-      <select class="form-select" id="correctType">
+      <select class="form-select" id="correctType" onchange="種別切替()">
         <option value="出勤">出勤時刻</option>
         <option value="退勤">退勤時刻</option>
         <option value="休憩">休憩時間（分）</option>
@@ -201,7 +208,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
     </div>
     <div class="form-group">
       <label class="form-label" id="correctInputLabel">正しい時刻</label>
-      <input class="form-input" type="time" id="correctTime">
+      <input class="form-input" type="time"   id="correctTime">
       <input class="form-input" type="number" id="correctBreak" placeholder="例: 60" min="0" max="480" style="display:none;margin-top:8px;">
     </div>
     <div class="form-group">
@@ -209,7 +216,29 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
       <textarea class="form-textarea" id="correctReason" placeholder="例：朝一外出のため、事務所到着後に打刻しました"></textarea>
     </div>
     <button class="btn btn-green" onclick="修正申請送信()">📨 申請する</button>
-    <button class="btn btn-gray"  onclick="モーダル閉じる()">キャンセル</button>
+    <button class="btn btn-gray"  onclick="モーダル閉じる('correctOverlay')">キャンセル</button>
+  </div>
+</div>
+
+<!-- 出勤予定申告モーダル -->
+<div class="modal-overlay" id="scheduleOverlay">
+  <div class="modal">
+    <div class="modal-title">📅 出勤予定申告</div>
+    <div class="modal-sub">前日までは即時反映、当日以降は申請制です</div>
+    <div class="form-group">
+      <label class="form-label">日付</label>
+      <input class="form-input" type="date" id="scheduleDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">出勤予定時刻</label>
+      <input class="form-input" type="time" id="scheduleTime">
+    </div>
+    <div class="form-group" id="scheduleReasonGroup" style="display:none;">
+      <label class="form-label">申請理由（当日以降のため必須）</label>
+      <textarea class="form-textarea" id="scheduleReason" placeholder="例：急な予定変更のため"></textarea>
+    </div>
+    <button class="btn btn-green" onclick="出勤予定送信()">📨 申告する</button>
+    <button class="btn btn-gray"  onclick="モーダル閉じる('scheduleOverlay')">キャンセル</button>
   </div>
 </div>
 
@@ -222,7 +251,8 @@ const now = new Date();
 let 表示年 = now.getFullYear();
 let 表示月 = now.getMonth() + 1;
 let 選択中の日付 = "";
-let 社員マスタMap = {}; // 名前 → {scheduledIn, breakMin}
+let 社員マスタMap = {};
+let 出勤予定Map = {};
 
 // 月表示
 function 月表示更新() {
@@ -238,7 +268,7 @@ function 月変更(delta) {
   if (document.getElementById("logCard").className.includes("show")) ログ取得();
 }
 
-// 社員リスト読み込み
+// 社員リスト
 async function 社員リスト読み込み() {
   const sel = document.getElementById("nameSelect");
   try {
@@ -250,7 +280,6 @@ async function 社員リスト読み込み() {
       opt.value = name; opt.textContent = name;
       sel.appendChild(opt);
     });
-    // 社員マスタも取得
     if (data.masters) {
       data.masters.forEach(m => { 社員マスタMap[m.name] = m; });
     }
@@ -279,15 +308,33 @@ function isLate(scheduledIn, actualIn) {
   return timeToMin(actualIn) > timeToMin(scheduledIn);
 }
 
-// 実働計算
+// 15分刻み切り捨て（退勤）
+function roundDownTo15(t) {
+  if (!t) return null;
+  const m = timeToMin(t);
+  return Math.floor(m / 15) * 15;
+}
+
+// 15分刻み切り上げ（出勤）
+function roundUpTo15(t) {
+  if (!t) return null;
+  const m = timeToMin(t);
+  return Math.ceil(m / 15) * 15;
+}
+
+// 勤務時間計算（15分刻み）
 function calcWorkMin(scheduledIn, inTime, outTime, breakMin) {
-  const outM = timeToMin(outTime);
+  const outM = roundDownTo15(outTime);
   if (outM === null) return null;
   const late = isLate(scheduledIn, inTime);
-  // 遅刻なし→定時から、遅刻あり→出勤打刻から
-  const startM = late ? timeToMin(inTime) : timeToMin(scheduledIn);
+  let startM;
+  if (late) {
+    startM = roundUpTo15(inTime); // 遅刻：出勤打刻を15分刻み切り上げ
+  } else {
+    startM = timeToMin(scheduledIn); // 定時通り：定時から
+  }
   if (startM === null) return null;
-  return Math.max(0, outM - startM - (breakMin || 0));
+  return Math.max(0, outM - startM - (parseInt(breakMin) || 0));
 }
 
 // ログ取得
@@ -300,10 +347,14 @@ async function ログ取得() {
   document.getElementById("logCard").className     = "log-card";
 
   try {
-    const url  = `${GAS_URL}?action=getMyLog&name=${encodeURIComponent(名前)}&year=${表示年}&month=${表示月}`;
-    const res  = await fetch(url);
-    const data = await res.json();
-    ログ表示(名前, 表示年, 表示月, data.logs || [], data.master || {});
+    const [logRes, schedRes] = await Promise.all([
+      fetch(`${GAS_URL}?action=getMyLog&name=${encodeURIComponent(名前)}&year=${表示年}&month=${表示月}`),
+      fetch(`${GAS_URL}?action=getSchedule&name=${encodeURIComponent(名前)}&year=${表示年}&month=${表示月}`)
+    ]);
+    const logData  = await logRes.json();
+    const schedData = await schedRes.json();
+    出勤予定Map = schedData.schedule || {};
+    ログ表示(名前, 表示年, 表示月, logData.logs || [], logData.master || {});
   } catch(e) {
     ログ表示(名前, 表示年, 表示月, [], {});
   }
@@ -313,21 +364,20 @@ async function ログ取得() {
 function ログ表示(名前, year, month, logs, master) {
   const days  = ["日","月","火","水","木","金","土"];
   const pad   = n => String(n).padStart(2,"0");
-  const today = new Date();
   const 日数  = new Date(year, month, 0).getDate();
 
-  // 社員マスタから定時・休憩取得
-  const scheduledIn = master.scheduledIn || 社員マスタMap[名前]?.scheduledIn || "";
-  const breakMin    = parseInt(master.breakMin || 社員マスタMap[名前]?.breakMin || 60);
+  const scheduledIn  = master.scheduledIn  || 社員マスタMap[名前]?.scheduledIn  || "";
+  const breakMin     = parseInt(master.breakMin || 社員マスタMap[名前]?.breakMin || 60);
 
   const rows = [];
   for (let d = 1; d <= 日数; d++) {
-    const dt = new Date(year, month-1, d);
-    if (year === today.getFullYear() && month === today.getMonth()+1 && dt > today) break;
+    const dt      = new Date(year, month-1, d);
     const dow     = dt.getDay();
     const dateStr = `${year}/${pad(month)}/${pad(d)}`;
     const log     = logs.find(l => l.date === dateStr) || {};
-    rows.push({ dateStr, dow, in: log.in||"", out: log.out||"", scheduledIn, breakMin });
+    // 出勤予定があればその時刻、なければ基本定時
+    const dayScheduledIn = 出勤予定Map[dateStr] || scheduledIn;
+    rows.push({ dateStr, dow, in: log.in||"", out: log.out||"", scheduledIn: dayScheduledIn, breakMin, hasSchedule: !!出勤予定Map[dateStr] });
   }
 
   // サマリー計算
@@ -347,42 +397,41 @@ function ログ表示(名前, year, month, logs, master) {
   document.getElementById("statMissing").textContent  = 漏れ + "件";
   document.getElementById("summaryCard").className    = "summary-card show";
 
-  // テーブル描画
   const tbody = document.getElementById("logBody");
   tbody.innerHTML = "";
 
-  if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">データがありません 🌱</td></tr>';
-  } else {
-    rows.forEach(r => {
-      const isWE  = r.dow === 0 || r.dow === 6;
-      const hasIn = !!r.in, hasOut = !!r.out;
-      const late  = isLate(r.scheduledIn, r.in);
-      const workM = calcWorkMin(r.scheduledIn, r.in, r.out, r.breakMin);
+  rows.forEach(r => {
+    const isWE  = r.dow === 0 || r.dow === 6;
+    const hasIn = !!r.in, hasOut = !!r.out;
+    const late  = isLate(r.scheduledIn, r.in);
+    const workM = calcWorkMin(r.scheduledIn, r.in, r.out, r.breakMin);
 
-      const inCell   = hasIn
-        ? `<span class="${late ? 'time-in-late' : 'time-in-normal'}">${r.in}</span>`
-        : `<span class="time-empty">―</span>`;
-      const outCell  = hasOut
-        ? `<span class="time-out">${r.out}</span>`
-        : `<span class="time-empty">―</span>`;
-      const workCell = `<span class="time-work">${minToHHMM(workM)}</span>`;
-      const correctBtn = isWE ? "" : `<button class="btn-correct" onclick="修正モーダル開く('${r.dateStr}')">修正</button>`;
+    const scheduledCell = r.scheduledIn
+      ? `${r.scheduledIn}${r.hasSchedule ? '<span class="schedule-badge">予定</span>' : ''}`
+      : "―";
 
-      const tr = document.createElement("tr");
-      if (isWE) tr.style.opacity = "0.4";
-      tr.innerHTML = `
-        <td class="td-date">${r.dateStr.slice(5)}<br><span class="td-day">（${days[r.dow]}）</span></td>
-        <td class="time-scheduled">${r.scheduledIn || "―"}</td>
-        <td>${inCell}</td>
-        <td>${outCell}</td>
-        <td class="time-break">${r.breakMin ? r.breakMin + "分" : "―"}</td>
-        <td>${workCell}</td>
-        <td>${correctBtn}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
+    const inCell  = hasIn
+      ? `<span class="${late ? 'time-in-late' : 'time-in-normal'}">${r.in}</span>`
+      : `<span class="time-empty">―</span>`;
+    const outCell = hasOut
+      ? `<span class="time-out">${r.out}</span>`
+      : `<span class="time-empty">―</span>`;
+    const workCell = `<span class="time-work">${minToHHMM(workM)}</span>`;
+    const correctBtn = isWE ? "" : `<button class="btn-correct" onclick="修正モーダル開く('${r.dateStr}')">修正</button>`;
+
+    const tr = document.createElement("tr");
+    if (isWE) tr.style.opacity = "0.4";
+    tr.innerHTML = `
+      <td class="td-date">${r.dateStr.slice(5)}<br><span class="td-day">（${days[r.dow]}）</span></td>
+      <td class="time-scheduled">${scheduledCell}</td>
+      <td>${inCell}</td>
+      <td>${outCell}</td>
+      <td style="color:#555">${r.breakMin ? r.breakMin + "分" : "―"}</td>
+      <td>${workCell}</td>
+      <td>${correctBtn}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 
   document.getElementById("logCard").className = "log-card show";
 }
@@ -390,16 +439,13 @@ function ログ表示(名前, year, month, logs, master) {
 // 修正モーダル
 function 修正モーダル開く(dateStr) {
   選択中の日付 = dateStr;
-  document.getElementById("modalSub").textContent = `対象日：${dateStr}`;
+  document.getElementById("correctSub").textContent = `対象日：${dateStr}`;
   document.getElementById("correctTime").value    = "";
   document.getElementById("correctBreak").value   = "";
   document.getElementById("correctReason").value  = "";
-  document.getElementById("modalOverlay").className = "modal-overlay show";
+  document.getElementById("correctType").value    = "出勤";
   種別切替();
-}
-
-function モーダル閉じる() {
-  document.getElementById("modalOverlay").className = "modal-overlay";
+  document.getElementById("correctOverlay").className = "modal-overlay show";
 }
 
 function 種別切替() {
@@ -409,13 +455,12 @@ function 種別切替() {
   document.getElementById("correctBreak").style.display = isBreak ? "block" : "none";
   document.getElementById("correctInputLabel").textContent = isBreak ? "正しい休憩時間（分）" : "正しい時刻";
 }
-document.getElementById("correctType").addEventListener("change", 種別切替);
 
 async function 修正申請送信() {
-  const 名前 = document.getElementById("nameSelect").value;
-  const 種別 = document.getElementById("correctType").value;
+  const 名前    = document.getElementById("nameSelect").value;
+  const 種別    = document.getElementById("correctType").value;
   const isBreak = 種別 === "休憩";
-  const 値   = isBreak
+  const 値      = isBreak
     ? document.getElementById("correctBreak").value
     : document.getElementById("correctTime").value;
   const 理由 = document.getElementById("correctReason").value;
@@ -423,21 +468,84 @@ async function 修正申請送信() {
   if (!値)  { alert(isBreak ? "休憩時間を入力してください" : "正しい時刻を入力してください"); return; }
   if (!理由) { alert("修正理由を入力してください"); return; }
 
-  const newTime = isBreak ? 値 : 値.slice(0, 5);
-
+  const newTime = isBreak ? 値 : 値.slice(0,5);
   try {
     const url  = `${GAS_URL}?action=correct&name=${encodeURIComponent(名前)}&date=${encodeURIComponent(選択中の日付)}&type=${encodeURIComponent(種別)}&newTime=${encodeURIComponent(newTime)}&reason=${encodeURIComponent(理由)}`;
     const res  = await fetch(url);
     const data = await res.json();
     if (data.success) {
-      モーダル閉じる();
+      モーダル閉じる('correctOverlay');
       トースト表示("✅ 修正申請を送信しました！承認後に反映されます");
     } else {
       alert("エラー：" + (data.error || "送信できませんでした"));
     }
-  } catch(e) {
-    alert("通信エラーが発生しました");
-  }
+  } catch(e) { alert("通信エラーが発生しました"); }
+}
+
+// 出勤予定モーダル
+function 出勤予定モーダル開く() {
+  const 名前 = document.getElementById("nameSelect").value;
+  if (!名前) { alert("先に名前を選んでください！"); return; }
+
+  // 日付の初期値を今日にセット
+  const today = new Date();
+  const pad = n => String(n).padStart(2,"0");
+  const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+  document.getElementById("scheduleDate").value  = todayStr;
+  document.getElementById("scheduleDate").min    = todayStr;
+
+  // 1ヶ月先の日付を計算
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 1);
+  const maxStr = `${maxDate.getFullYear()}-${pad(maxDate.getMonth()+1)}-${pad(maxDate.getDate())}`;
+  document.getElementById("scheduleDate").max = maxStr;
+
+  document.getElementById("scheduleTime").value  = "";
+  document.getElementById("scheduleReason").value = "";
+  document.getElementById("scheduleReasonGroup").style.display = "none";
+
+  document.getElementById("scheduleDate").addEventListener("change", 予定日付変更);
+  document.getElementById("scheduleOverlay").className = "modal-overlay show";
+}
+
+function 予定日付変更() {
+  const selected = document.getElementById("scheduleDate").value;
+  const today    = new Date().toISOString().slice(0,10);
+  const isToday  = selected >= today;
+  document.getElementById("scheduleReasonGroup").style.display = isToday ? "block" : "none";
+}
+
+async function 出勤予定送信() {
+  const 名前  = document.getElementById("nameSelect").value;
+  const date  = document.getElementById("scheduleDate").value.replace(/-/g, "/");
+  const time  = document.getElementById("scheduleTime").value;
+  const reason = document.getElementById("scheduleReason").value;
+  const today  = new Date().toISOString().slice(0,10).replace(/-/g, "/");
+  const isToday = date >= today;
+
+  if (!date) { alert("日付を選んでください"); return; }
+  if (!time) { alert("出勤予定時刻を入力してください"); return; }
+  if (isToday && !reason) { alert("当日以降は申請理由が必要です"); return; }
+
+  try {
+    const url  = `${GAS_URL}?action=setSchedule&name=${encodeURIComponent(名前)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time.slice(0,5))}&reason=${encodeURIComponent(reason)}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.success) {
+      モーダル閉じる('scheduleOverlay');
+      const msg = data.mode === "pending"
+        ? "📨 申請を送信しました！承認後に反映されます"
+        : "✅ 出勤予定を登録しました！";
+      トースト表示(msg);
+      ログ取得(); // 表示更新
+    } else {
+      alert("エラー：" + (data.error || "送信できませんでした"));
+    }
+  } catch(e) { alert("通信エラーが発生しました"); }
+}
+
+function モーダル閉じる(id) {
+  document.getElementById(id).className = "modal-overlay";
 }
 
 function トースト表示(msg) {
@@ -447,8 +555,10 @@ function トースト表示(msg) {
   setTimeout(() => { t.className = "toast"; }, 3500);
 }
 
-document.getElementById("modalOverlay").addEventListener("click", function(e) {
-  if (e.target === this) モーダル閉じる();
+document.querySelectorAll(".modal-overlay").forEach(el => {
+  el.addEventListener("click", function(e) {
+    if (e.target === this) this.className = "modal-overlay";
+  });
 });
 </script>
 </body>
