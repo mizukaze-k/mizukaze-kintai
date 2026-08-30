@@ -368,7 +368,8 @@ function ログ表示(名前, year, month, logs, master) {
   const 日数  = new Date(year, month, 0).getDate();
 
   const scheduledIn  = master.scheduledIn  || 社員マスタMap[名前]?.scheduledIn  || "";
-  const defaultBreak = parseInt(master.breakMin || 社員マスタMap[名前]?.breakMin || 60);
+  const rawBreak = master.breakMin ?? 社員マスタMap[名前]?.breakMin ?? 60;
+  const defaultBreak = parseInt(rawBreak);
 
   const rows = [];
   for (let d = 1; d <= 日数; d++) {
