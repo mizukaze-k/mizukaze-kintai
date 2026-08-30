@@ -224,8 +224,8 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 <!-- 出勤予定申告モーダル -->
 <div class="modal-overlay" id="scheduleOverlay">
   <div class="modal">
-    <div class="modal-title">📅 出勤予定申告</div>
-    <div class="modal-sub">前日までは即時反映、当日以降は申請制です</div>
+    <div class="modal-title">📅 出勤予定変更</div>
+    <div class="modal-sub">翌日以降1ヶ月先まで変更できます（当日の変更は修正ボタンから）</div>
     <div class="form-group">
       <label class="form-label">日付</label>
       <input class="form-input" type="date" id="scheduleDate">
@@ -233,10 +233,6 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
     <div class="form-group">
       <label class="form-label">出勤予定時刻</label>
       <input class="form-input" type="time" id="scheduleTime">
-    </div>
-    <div class="form-group" id="scheduleReasonGroup" style="display:none;">
-      <label class="form-label">申請理由（当日以降のため必須）</label>
-      <textarea class="form-textarea" id="scheduleReason" placeholder="例：急な予定変更のため"></textarea>
     </div>
     <button class="btn btn-green" onclick="出勤予定送信()">✅ 変更する</button>
     <button class="btn btn-gray"  onclick="モーダル閉じる('scheduleOverlay')">キャンセル</button>
@@ -498,57 +494,46 @@ function 出勤予定モーダル開く() {
   const 名前 = document.getElementById("nameSelect").value;
   if (!名前) { alert("先に名前を選んでください！"); return; }
 
-  // 日付の初期値を今日にセット
   const today = new Date();
   const pad = n => String(n).padStart(2,"0");
-  const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
-  document.getElementById("scheduleDate").value  = todayStr;
-  document.getElementById("scheduleDate").min    = todayStr;
 
-  // 1ヶ月先の日付を計算
-  const maxDate = new Date();
+  // 明日の日付を最小値にする（当日は選択不可）
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth()+1)}-${pad(tomorrow.getDate())}`;
+
+  // 1ヶ月先の日付を最大値にする
+  const maxDate = new Date(today);
   maxDate.setMonth(maxDate.getMonth() + 1);
   const maxStr = `${maxDate.getFullYear()}-${pad(maxDate.getMonth()+1)}-${pad(maxDate.getDate())}`;
-  document.getElementById("scheduleDate").max = maxStr;
 
-  document.getElementById("scheduleTime").value  = "";
-  document.getElementById("scheduleReason").value = "";
+  document.getElementById("scheduleDate").value = minStr;
+  document.getElementById("scheduleDate").min   = minStr;
+  document.getElementById("scheduleDate").max   = maxStr;
+  document.getElementById("scheduleTime").value = "";
   document.getElementById("scheduleReasonGroup").style.display = "none";
 
-  document.getElementById("scheduleDate").addEventListener("change", 予定日付変更);
   document.getElementById("scheduleOverlay").className = "modal-overlay show";
 }
 
-function 予定日付変更() {
-  const selected = document.getElementById("scheduleDate").value;
-  const today    = new Date().toISOString().slice(0,10);
-  const isToday  = selected >= today;
-  document.getElementById("scheduleReasonGroup").style.display = isToday ? "block" : "none";
-}
+
 
 async function 出勤予定送信() {
   const 名前  = document.getElementById("nameSelect").value;
   const date  = document.getElementById("scheduleDate").value.replace(/-/g, "/");
   const time  = document.getElementById("scheduleTime").value;
-  const reason = document.getElementById("scheduleReason").value;
-  const today  = new Date().toISOString().slice(0,10).replace(/-/g, "/");
-  const isToday = date >= today;
 
   if (!date) { alert("日付を選んでください"); return; }
   if (!time) { alert("出勤予定時刻を入力してください"); return; }
-  if (isToday && !reason) { alert("当日以降は申請理由が必要です"); return; }
 
   try {
-    const url  = `${GAS_URL}?action=setSchedule&name=${encodeURIComponent(名前)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time.slice(0,5))}&reason=${encodeURIComponent(reason)}`;
+    const url  = `${GAS_URL}?action=setSchedule&name=${encodeURIComponent(名前)}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time.slice(0,5))}&reason=`;
     const res  = await fetch(url);
     const data = await res.json();
     if (data.success) {
       モーダル閉じる('scheduleOverlay');
-      const msg = data.mode === "pending"
-        ? "📨 申請を送信しました！承認後に反映されます"
-        : "✅ 出勤予定を登録しました！";
-      トースト表示(msg);
-      ログ取得(); // 表示更新
+      トースト表示("✅ 出勤予定を登録しました！");
+      ログ取得();
     } else {
       alert("エラー：" + (data.error || "送信できませんでした"));
     }
