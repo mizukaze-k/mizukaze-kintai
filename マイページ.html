@@ -368,7 +368,7 @@ function ログ表示(名前, year, month, logs, master) {
   const 日数  = new Date(year, month, 0).getDate();
 
   const scheduledIn  = master.scheduledIn  || 社員マスタMap[名前]?.scheduledIn  || "";
-  const breakMin     = parseInt(master.breakMin || 社員マスタMap[名前]?.breakMin || 60);
+  const defaultBreak = parseInt(master.breakMin || 社員マスタMap[名前]?.breakMin || 60);
 
   const rows = [];
   for (let d = 1; d <= 日数; d++) {
@@ -376,7 +376,10 @@ function ログ表示(名前, year, month, logs, master) {
     const dow     = dt.getDay();
     const dateStr = `${year}/${pad(month)}/${pad(d)}`;
     const log     = logs.find(l => l.date === dateStr) || {};
-    // 出勤予定があればその時刻、なければ基本定時
+    // 日ごとのbreakMin（修正申請で変更された場合はそちらを優先）
+    const breakMin = (log.breakMin !== null && log.breakMin !== undefined)
+      ? parseInt(log.breakMin)
+      : defaultBreak;
     const dayScheduledIn = 出勤予定Map[dateStr] || scheduledIn;
     rows.push({ dateStr, dow, in: log.in||"", out: log.out||"", scheduledIn: dayScheduledIn, breakMin, hasSchedule: !!出勤予定Map[dateStr] });
   }
