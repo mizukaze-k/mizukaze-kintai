@@ -377,7 +377,7 @@ function ログ表示(名前, year, month, logs, master) {
     const breakMin = (log.breakMin !== null && log.breakMin !== undefined)
       ? parseInt(log.breakMin)
       : defaultBreak;
-    const dayScheduledIn = 出勤予定Map[dateStr] || scheduledIn;
+    const dayScheduledIn = log.scheduledIn || 出勤予定Map[dateStr] || scheduledIn;
     rows.push({ dateStr, dow, in: log.in||"", out: log.out||"", scheduledIn: dayScheduledIn, breakMin, hasSchedule: !!出勤予定Map[dateStr] });
   }
 
