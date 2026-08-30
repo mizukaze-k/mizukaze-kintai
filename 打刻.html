@@ -360,7 +360,7 @@ body {
 // ============================================================
 // ★ 設定 — GASデプロイ後にここを変更する ★
 // ============================================================
-const GAS_URL = "https://script.google.com/macros/s/AKfycbybr3z0P_J9H6JUXc5ETVEkhOIrZLcQTJu3P3441sh5Xrn6yDMX2_VPt_RaRAKPoHs9kw/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzllHHm0KTJJsL1h7m8-zYceEPuJJLgS5Mz57dvKG6EzOC7midFD5Brg3X7wIAdre6kog/exec";
 // ============================================================
 
 // 時計
@@ -390,12 +390,7 @@ async function 社員リスト読み込み() {
       sel.appendChild(opt);
     });
   } catch(e) {
-    // GAS未設定時はサンプル表示
-    sel.innerHTML = `
-      <option value="">― 名前を選んでください ―</option>
-      <option value="林田孝志">林田孝志</option>
-      <option value="サンプル太郎">サンプル太郎</option>
-    `;
+    sel.innerHTML = '<option value="">読み込み失敗 — リロードしてください</option>';
   }
 }
 社員リスト読み込み();
