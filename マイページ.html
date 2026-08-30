@@ -54,7 +54,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
 .btn:active { transform:scale(0.97); opacity:0.85; }
 .btn-primary { background:linear-gradient(135deg,var(--blue),var(--purple)); box-shadow:0 6px 16px rgba(77,150,255,0.3); }
 .btn-green   { background:linear-gradient(135deg,#6BCB77,#4CAF50); box-shadow:0 6px 16px rgba(107,203,119,0.3); }
-.btn-orange  { background:linear-gradient(135deg,#FF9A3C,#FF6B6B); box-shadow:0 6px 16px rgba(255,107,107,0.3); margin-top:10px; }
+.btn-orange  { background:linear-gradient(135deg,#FFB347,#FFA07A); box-shadow:0 6px 16px rgba(255,160,122,0.25); margin-top:10px; }
 .btn-gray    { background:#e5e7eb; color:#6b7280; box-shadow:none; margin-top:8px; }
 
 .summary-card {
@@ -158,7 +158,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
     <button class="btn-month" onclick="月変更(1)">›</button>
   </div>
   <button class="btn btn-primary" onclick="ログ取得()">📋 打刻を見る</button>
-  <button class="btn btn-orange"  onclick="出勤予定モーダル開く()">📅 出勤予定を申告する</button>
+  <button class="btn btn-orange"  onclick="出勤予定モーダル開く()">📅 出勤予定を変更する</button>
 </div>
 
 <div class="loading" id="loading"><div class="spinner"></div><br>読み込み中...</div>
@@ -204,6 +204,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
         <option value="出勤">出勤時刻</option>
         <option value="退勤">退勤時刻</option>
         <option value="休憩">休憩時間（分）</option>
+        <option value="定時">定時変更</option>
       </select>
     </div>
     <div class="form-group">
@@ -237,7 +238,7 @@ body { display:flex; flex-direction:column; align-items:center; padding:28px 16p
       <label class="form-label">申請理由（当日以降のため必須）</label>
       <textarea class="form-textarea" id="scheduleReason" placeholder="例：急な予定変更のため"></textarea>
     </div>
-    <button class="btn btn-green" onclick="出勤予定送信()">📨 申告する</button>
+    <button class="btn btn-green" onclick="出勤予定送信()">✅ 変更する</button>
     <button class="btn btn-gray"  onclick="モーダル閉じる('scheduleOverlay')">キャンセル</button>
   </div>
 </div>
@@ -453,7 +454,13 @@ function 種別切替() {
   const isBreak = type === "休憩";
   document.getElementById("correctTime").style.display  = isBreak ? "none" : "block";
   document.getElementById("correctBreak").style.display = isBreak ? "block" : "none";
-  document.getElementById("correctInputLabel").textContent = isBreak ? "正しい休憩時間（分）" : "正しい時刻";
+  if (isBreak) {
+    document.getElementById("correctInputLabel").textContent = "正しい休憩時間（分）";
+  } else if (type === "定時") {
+    document.getElementById("correctInputLabel").textContent = "正しい定時（出勤時刻）";
+  } else {
+    document.getElementById("correctInputLabel").textContent = "正しい時刻";
+  }
 }
 
 async function 修正申請送信() {
