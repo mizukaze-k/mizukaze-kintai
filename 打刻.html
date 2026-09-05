@@ -431,12 +431,18 @@ function 履歴表示() {
 }
 
 // ── 打刻処理 ──
+let 打刻中 = false; // 二重送信防止フラグ
+
 async function 打刻(種別) {
+  if (打刻中) return; // 処理中は無視
+
   const 社員名 = document.getElementById("nameSelect").value;
   if (!社員名) {
     alert("名前を選んでください！");
     return;
   }
+
+  打刻中 = true; // フラグを立てる
 
   const btnIn  = document.getElementById("btnIn");
   const btnOut = document.getElementById("btnOut");
@@ -495,7 +501,8 @@ async function 打刻(種別) {
     btnIn.disabled = btnOut.disabled = false;
     btnIn.innerHTML  = `<span class="btn-icon">☀️</span><span class="btn-label">出勤</span>`;
     btnOut.innerHTML = `<span class="btn-icon">🌙</span><span class="btn-label">退勤</span>`;
-  }, 2000);
+    打刻中 = false; // フラグをリセット
+  }, 3000);
 }
 </script>
 </body>
